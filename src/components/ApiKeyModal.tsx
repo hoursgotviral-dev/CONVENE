@@ -90,6 +90,9 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => 
                   <p className="text-[10px] text-neutral-500">
                     Active provider: <span className="font-mono text-neutral-300 font-semibold">{apiKeysStatus.provider?.toUpperCase()}</span>
                   </p>
+                  <p className="text-[10px] text-neutral-600 mt-0.5">
+                    Your key is encrypted at rest and never displayed again after saving.
+                  </p>
                 </div>
               </div>
               <button
@@ -192,7 +195,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => 
 
         {/* Footer info banner */}
         <div className="px-6 py-4 bg-bg-dark border-t border-sys-border text-[10px] text-neutral-500 leading-normal font-sans font-medium">
-          Keys are loaded entirely in-memory and proxied through our secure cloud server. We never log or cache secret keys.
+          Keys are encrypted at rest, loaded entirely in-memory and proxied through our secure cloud server. We never log, cache, or display secret keys after saving.
         </div>
       </div>
     </div>

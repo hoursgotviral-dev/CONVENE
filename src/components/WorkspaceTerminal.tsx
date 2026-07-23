@@ -18,14 +18,14 @@ export const WorkspaceTerminal: React.FC<WorkspaceTerminalProps> = ({
   setIsOpen,
 }) => {
   const terminalRef = useRef<HTMLDivElement>(null);
-  const { triggerAgentQuery, fileContents, selectedFile, apiKeyConfig } = useWorkspace();
+  const { triggerAgentQuery, fileContents, selectedFile, apiKeysStatus } = useWorkspace();
 
   const fileContentsRef = useRef(fileContents);
   fileContentsRef.current = fileContents;
   const selectedFileRef = useRef(selectedFile);
   selectedFileRef.current = selectedFile;
-  const apiKeyConfigRef = useRef(apiKeyConfig);
-  apiKeyConfigRef.current = apiKeyConfig;
+  const apiKeysStatusRef = useRef(apiKeysStatus);
+  apiKeysStatusRef.current = apiKeysStatus;
 
   const termRef = useRef<Terminal | null>(null);
 
@@ -186,11 +186,12 @@ export const WorkspaceTerminal: React.FC<WorkspaceTerminalProps> = ({
         term.write('\x1b[32m$ \x1b[0m');
       } else if (baseCmd === 'apikey') {
         isWriting = true;
-        if (apiKeyConfigRef.current) {
-          await writeLineByLine([
-            `Status: \x1b[32mCONNECTED\x1b[0m`,
-            `Provider: \x1b[36m${apiKeyConfigRef.current.provider.toUpperCase()}\x1b[0m`
-          ], 30);
+        term.writeln('\r\n\x1b[1;34m[API Key Diagnostic]\x1b[0m');
+        if (apiKeysStatusRef.current?.connected) {
+          term.writeln(`Status: \x1b[32mConnected\x1b[0m`);
+          term.writeln(
+            `Provider: \x1b[36m${(apiKeysStatusRef.current.provider || 'UNKNOWN').toUpperCase()}\x1b[0m`
+          );
         } else {
           await writeLineByLine([
             'Status: \x1b[33mDEMO MODE (Using smart server simulation)\x1b[0m',

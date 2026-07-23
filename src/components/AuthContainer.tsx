@@ -349,6 +349,16 @@ export const AuthContainer: React.FC<AuthContainerProps> = ({ onSuccess }) => {
                   Create free account
                 </button>
               </p>
+
+              <div className="mt-6 pt-4 border-t border-neutral-900 text-center">
+                <button
+                  type="button"
+                  onClick={() => onSuccess(`guest_${Math.random().toString(36).substring(2, 8)}@dev.samanvay.local`)}
+                  className="w-full py-2.5 px-4 bg-transparent hover:bg-white/5 border border-neutral-800 text-neutral-400 hover:text-neutral-200 font-semibold text-xs rounded-lg transition-all duration-200 cursor-pointer"
+                >
+                  Continue Anonymously (Session Only)
+                </button>
+              </div>
             </form>
           )}
 
@@ -516,6 +526,16 @@ export const AuthContainer: React.FC<AuthContainerProps> = ({ onSuccess }) => {
                   Log in
                 </button>
               </p>
+
+              <div className="mt-6 pt-4 border-t border-neutral-900 text-center">
+                <button
+                  type="button"
+                  onClick={() => onSuccess(`guest_${Math.random().toString(36).substring(2, 8)}@dev.samanvay.local`)}
+                  className="w-full py-2.5 px-4 bg-transparent hover:bg-white/5 border border-neutral-800 text-neutral-400 hover:text-neutral-200 font-semibold text-xs rounded-lg transition-all duration-200 cursor-pointer"
+                >
+                  Continue Anonymously (Session Only)
+                </button>
+              </div>
             </form>
           )}
 

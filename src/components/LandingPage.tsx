@@ -83,6 +83,7 @@ export const LandingPage: React.FC = () => {
   };
 
   const isJoinDisabled = roomInput.trim().length !== 6 || loading;
+  const isAnonymous = authenticatedUserEmail?.endsWith('@dev.samanvay.local');
 
   return (
     <div className="min-h-screen bg-[#0D0E12] text-neutral-100 flex flex-col justify-between p-4 md:p-8 relative overflow-hidden font-sans select-none">
@@ -109,9 +110,9 @@ export const LandingPage: React.FC = () => {
         
         {authenticatedUserEmail && (
           <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full backdrop-blur-md">
-            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <div className={`w-2 h-2 rounded-full animate-pulse ${isAnonymous ? 'bg-amber-400' : 'bg-emerald-400'}`} />
             <span className="text-[10px] font-mono text-neutral-400">
-              {authenticatedUserEmail}
+              {isAnonymous ? 'ANONYMOUS SESSION' : authenticatedUserEmail}
             </span>
           </div>
         )}
@@ -139,6 +140,15 @@ export const LandingPage: React.FC = () => {
             Coordinate in real time with autonomous cognitive agents to plan, estimate, cost, and execute software.
           </motion.p>
         </div>
+
+        {isAnonymous && (
+          <div className="w-full max-w-md bg-amber-500/10 border border-amber-500/20 px-4 py-3 rounded-2xl mb-4 text-[11px] text-amber-500/90 flex items-start gap-2.5 shadow-lg backdrop-blur-md">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span className="leading-relaxed">
+              <strong>Anonymous session</strong> — sign up to keep access to this room after your browser session ends.
+            </span>
+          </div>
+        )}
 
         {/* Display Name Step */}
         <div className="w-full max-w-md bg-white/[0.02] border border-white/5 p-5 rounded-2xl mb-8 shadow-2xl backdrop-blur-lg">

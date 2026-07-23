@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { TeamMember, AgentState, AgentStatus, Subtask, EstimatorOutput, RiskFlaggerOutput, KanbanTask } from '../types';
+import { apiFetch, setOn403Handler } from '../lib/apiClient';
 
 export interface Proposal {
   explanation: string;
@@ -128,7 +129,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const fetchRoomMembers = (code?: string) => {
     const activeCode = code || roomCode || sessionStorage.getItem('samanvay_room');
     if (!activeCode) return;
-    fetch(`/api/rooms/${encodeURIComponent(activeCode)}/members`)
+    apiFetch(`/api/rooms/${encodeURIComponent(activeCode)}/members`)
       .then((res) => {
         if (!res.ok) return null;
         return res.json();
@@ -144,7 +145,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const createRoom = async (creatorName: string): Promise<{ success: boolean; code?: string; error?: string }> => {
     try {
       setDisplayName(creatorName);
-      const res = await fetch("/api/rooms", {
+      const res = await apiFetch("/api/rooms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "create", displayName: creatorName })
@@ -173,7 +174,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (!normalizedCode) {
         return { success: false, error: "Please enter a valid room code." };
       }
-      const res = await fetch("/api/rooms", {
+      const res = await apiFetch("/api/rooms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "join", roomCode: normalizedCode, displayName: userName })
@@ -218,7 +219,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const fetchKeysStatus = (code?: string) => {
     const activeCode = code || roomCode || sessionStorage.getItem('samanvay_room');
     if (!activeCode) return;
-    fetch(`/api/keys/status?roomCode=${encodeURIComponent(activeCode)}`)
+    apiFetch(`/api/keys/status?roomCode=${encodeURIComponent(activeCode)}`)
       .then(res => {
         if (!res.ok) return null;
         return res.json();
@@ -238,7 +239,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const activeCode = roomCode || sessionStorage.getItem('samanvay_room');
     if (!activeCode) return false;
     try {
-      const res = await fetch('/api/keys', {
+      const res = await apiFetch('/api/keys', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider, key, roomCode: activeCode })
@@ -262,7 +263,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const activeCode = roomCode || sessionStorage.getItem('samanvay_room');
     if (!activeCode) return;
     try {
-      const res = await fetch(`/api/keys?roomCode=${encodeURIComponent(activeCode)}`, { method: 'DELETE' });
+      const res = await apiFetch(`/api/keys?roomCode=${encodeURIComponent(activeCode)}`, { method: 'DELETE' });
       if (res.ok) {
         setApiKeysStatus({ connected: false, provider: null });
       }
@@ -322,7 +323,7 @@ export const db = getFirestore(app);`,
   const fetchTasks = (code?: string) => {
     const activeCode = code || roomCode || sessionStorage.getItem('samanvay_room');
     if (!activeCode) return;
-    fetch(`/api/tasks?roomCode=${encodeURIComponent(activeCode)}`)
+    apiFetch(`/api/tasks?roomCode=${encodeURIComponent(activeCode)}`)
       .then(res => {
         if (!res.ok) return [];
         return res.json();
@@ -357,7 +358,7 @@ export const db = getFirestore(app);`,
       subtasks: [],
     };
     try {
-      const res = await fetch('/api/tasks', {
+      const res = await apiFetch('/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newTask),
@@ -379,7 +380,7 @@ export const db = getFirestore(app);`,
       if (!currentTask) return;
       const merged = { ...currentTask, ...updated, roomCode: activeCode };
 
-      const res = await fetch(`/api/tasks/${id}`, {
+      const res = await apiFetch(`/api/tasks/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(merged),
@@ -397,7 +398,7 @@ export const db = getFirestore(app);`,
     const activeCode = roomCode || sessionStorage.getItem('samanvay_room');
     if (!activeCode) return;
     try {
-      const res = await fetch(`/api/tasks/${id}?roomCode=${encodeURIComponent(activeCode)}`, {
+      const res = await apiFetch(`/api/tasks/${id}?roomCode=${encodeURIComponent(activeCode)}`, {
         method: 'DELETE',
       });
       const data = await res.json();
@@ -417,7 +418,7 @@ export const db = getFirestore(app);`,
     const activeCode = roomCode || sessionStorage.getItem('samanvay_room');
     if (!authenticatedUserEmail || !activeCode) return;
     try {
-      await fetch('/api/files/save', {
+      await apiFetch('/api/files/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fileName, content, email: authenticatedUserEmail, roomCode: activeCode }),
@@ -703,7 +704,7 @@ export const db = getFirestore(app);`,
     }
 
     try {
-      const response = await fetch('/api/orchestrate', {
+      const response = await apiFetch('/api/orchestrate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -745,7 +746,7 @@ export const db = getFirestore(app);`,
       }
 
       // Query the targeted single-agent patch fallback to present the co-coding overlay
-      const res = await fetch('/api/agent', {
+      const res = await apiFetch('/api/agent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

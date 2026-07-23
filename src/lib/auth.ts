@@ -1,8 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'samanvay-super-secret-jwt-key-2026';
+import { prisma } from './db';
+const JWT_SECRET = process.env.JWT_SECRET as string;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required and must not be empty");
+}
 const TOKEN_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export interface AuthenticatedRequest extends Request {
@@ -73,5 +76,70 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
   }
 
   req.user = payload;
+  next();
+}
+
+export interface RoomAuthenticatedRequest extends Request {
+  roomContext?: {
+    roomId: string;
+    userId: string;
+  };
+}
+
+export function issueRoomSessionCookie(res: Response, { roomId, roomCode, userId }: { roomId: string, roomCode: string, userId: string }) {
+  const token = jwt.sign({ roomId, roomCode, userId }, JWT_SECRET, { expiresIn: '7d' });
+  res.cookie(`samanvay_room_${roomCode}`, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: TOKEN_MAX_AGE,
+    path: '/',
+  });
+}
+
+export async function verifyRoomCookie(cookieHeader: string | undefined, roomCode: string): Promise<{ roomId: string; userId: string } | null> {
+  if (!cookieHeader) return null;
+  
+  const cookies = cookieHeader.split(';').map(c => c.trim());
+  const cookieName = `samanvay_room_${roomCode}=`;
+  const tokenCookie = cookies.find(c => c.startsWith(cookieName));
+  if (!tokenCookie) return null;
+  
+  const token = tokenCookie.substring(cookieName.length);
+  
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as { roomId: string; roomCode: string; userId: string };
+    
+    if (decoded.roomCode !== roomCode) {
+      return null;
+    }
+
+    const member = await prisma.roomMember.findFirst({
+      where: { roomId: decoded.roomId, userId: decoded.userId, status: 'active' },
+    });
+
+    if (!member) {
+      return null;
+    }
+
+    return { roomId: decoded.roomId, userId: decoded.userId };
+  } catch (err) {
+    return null;
+  }
+}
+
+export async function requireRoomMembership(req: RoomAuthenticatedRequest, res: Response, next: NextFunction) {
+  const roomCode = req.params.roomCode || req.body.roomCode || req.query.roomCode;
+  
+  if (!roomCode || typeof roomCode !== 'string') {
+    return res.status(400).json({ error: "roomCode is required." });
+  }
+
+  const context = await verifyRoomCookie(req.headers.cookie, roomCode);
+  if (!context) {
+    return res.status(403).json({ error: "You are not a member of this room." });
+  }
+
+  req.roomContext = context;
   next();
 }

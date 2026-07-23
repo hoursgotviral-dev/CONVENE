@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { KanbanTask, TeamMember } from '../types';
 import { useWorkspace } from '../context/WorkspaceContext';
+import { apiFetch } from '../lib/apiClient';
 import { 
   Sparkles, 
   Plus, 
@@ -69,7 +70,7 @@ export const TaskTracker: React.FC<TaskTrackerProps> = ({ teamMembers }) => {
     };
 
     try {
-      await fetch('/api/tasks', {
+      await apiFetch('/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(generated),

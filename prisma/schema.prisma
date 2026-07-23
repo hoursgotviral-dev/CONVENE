@@ -13,6 +13,7 @@ model User {
   passwordHash String
   displayName  String
   createdAt    DateTime @default(now())
+  roomMembers  RoomMember[]
 }
 
 model Room {
@@ -21,6 +22,9 @@ model Room {
   createdBy    String
   createdAt    DateTime @default(now())
   lastActiveAt DateTime @default(now())
+  members      RoomMember[]
+  tasks        Task[]
+  apiKeys      ApiKey[]
 }
 
 model RoomMember {
@@ -29,6 +33,11 @@ model RoomMember {
   userId   String
   joinedAt DateTime @default(now())
   status   String
+
+  room     Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, userId])
 }
 
 model Task {
@@ -42,6 +51,10 @@ model Task {
   agentReasoning    String?
   isApprovedByHuman Boolean?
   subtasks          Json
+
+  room              Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
 }
 
 model ApiKey {
@@ -51,5 +64,8 @@ model ApiKey {
   key       String
   createdAt DateTime @default(now())
 
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
   @@unique([roomId, provider])
+  @@index([roomId])
 }
