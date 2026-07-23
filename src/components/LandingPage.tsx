@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useWorkspace } from '../context/WorkspaceContext';
 import { SamanvayMark } from './SamanvayMark';
 import { Copy, Check, ArrowRight, Plus, LogIn, User, AlertCircle, Sparkles } from 'lucide-react';
@@ -20,18 +20,6 @@ export const LandingPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nameError, setNameError] = useState(false);
-  const [activeRooms, setActiveRooms] = useState<any[]>([]);
-
-  useEffect(() => {
-    fetch('/api/rooms')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.rooms) {
-          setActiveRooms(data.rooms);
-        }
-      })
-      .catch(err => console.error("Error loading active rooms:", err));
-  }, [createdRoomCode]);
 
   const handleCreate = async () => {
     setError(null);
@@ -350,34 +338,6 @@ export const LandingPage: React.FC = () => {
                     )}
                   </button>
                 </form>
-
-                {activeRooms.length > 0 && (
-                  <div className="mt-5 pt-4 border-t border-white/5 animate-fadeIn">
-                    <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest block mb-2 font-semibold">
-                      Active Sandbox Rooms
-                    </span>
-                    <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
-                      {activeRooms.map((r) => (
-                        <button
-                          key={r.code}
-                          type="button"
-                          onClick={() => {
-                            setRoomInput(r.code);
-                            setError(null);
-                          }}
-                          className={`px-3 py-1.5 text-[11px] font-mono rounded-lg transition-all border cursor-pointer ${
-                            roomInput === r.code
-                              ? 'bg-indigo-600/20 border-indigo-500 text-indigo-400 font-bold'
-                              : 'bg-[#181920] border-white/5 text-neutral-400 hover:text-white hover:border-white/10'
-                          }`}
-                          title={`Created by ${r.created_by}`}
-                        >
-                          {r.code}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             </motion.div>
           )}
