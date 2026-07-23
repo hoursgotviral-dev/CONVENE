@@ -1,0 +1,6 @@
+{
+  "name": "Samanvay Multi-Agent Dashboard",
+  "description": "A high-performance coordination dashboard orchestrating Planner, Estimator, and Risk-Flagger AI agents with buffered WebSocket streaming.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

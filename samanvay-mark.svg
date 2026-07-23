@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <linearGradient id="samanvay-grad-1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#5F5AF6" />
+    </linearGradient>
+    <linearGradient id="samanvay-grad-2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#818CF8" />
+      <stop offset="100%" stop-color="#312E81" />
+    </linearGradient>
+  </defs>
+  <!-- Background subtle glow -->
+  <circle cx="50" cy="50" r="45" fill="none" stroke="url(#samanvay-grad-1)" stroke-width="1.5" stroke-opacity="0.15" />
+  
+  <!-- Stylized interlocking nodes representing harmony / orchestration -->
+  <!-- Left node -->
+  <circle cx="35" cy="50" r="12" fill="url(#samanvay-grad-2)" />
+  <circle cx="35" cy="50" r="5" fill="#FFFFFF" />
+  
+  <!-- Right node -->
+  <circle cx="65" cy="50" r="12" fill="url(#samanvay-grad-1)" />
+  <circle cx="65" cy="50" r="5" fill="#FFFFFF" />
+  
+  <!-- Connecting curved ribbon (coordination loop) -->
+  <path d="M 35,50 C 42,30 58,30 65,50 C 58,70 42,70 35,50 Z" 
+        fill="none" 
+        stroke="url(#samanvay-grad-1)" 
+        stroke-width="4.5" 
+        stroke-linecap="round" />
+        
+  <!-- Center overlap star/node -->
+  <circle cx="50" cy="50" r="3" fill="#FFFFFF" />
+</svg>
