@@ -100,7 +100,7 @@ export const LandingPage: React.FC = () => {
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-bold font-display tracking-[0.2em] text-white uppercase leading-none">
-              SAMANVAY
+              CONVENE
             </span>
             <span className="text-[9px] font-mono text-indigo-400 font-medium tracking-widest mt-1">
               COORDINATION MATRIX
@@ -373,7 +373,7 @@ export const LandingPage: React.FC = () => {
       {/* Footer / System Credits */}
       <footer className="w-full max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between py-4 border-t border-white/5 text-[10px] font-mono text-neutral-600 gap-2 mt-8 z-10">
         <div>
-          &copy; {new Date().getFullYear()} SAMANVAY SYSTEM. ALL SERVICES NOMINAL.
+          &copy; {new Date().getFullYear()} CONVENE SYSTEM. ALL SERVICES NOMINAL.
         </div>
         <div className="flex items-center gap-4">
           <span>SECURED CHANNELS</span>

@@ -68,7 +68,7 @@ export const WorkspaceTerminal: React.FC<WorkspaceTerminalProps> = ({
     termRef.current = term;
     term.open(terminalRef.current);
 
-    term.writeln('\x1b[35m=== SAMANVAY Co-Coding Terminal v1.0.0 ===\x1b[0m');
+    term.writeln('\x1b[35m=== CONVENE Co-Coding Terminal v1.0.0 ===\x1b[0m');
     term.writeln('Connected to secure sandboxed environment. Port 3000 open.');
     term.writeln('Type \x1b[36mhelp\x1b[0m for commands or \x1b[33mvibe <instruction>\x1b[0m to patch selected file.');
     term.write('\n\x1b[32m$ \x1b[0m');

@@ -155,7 +155,7 @@ export const TerminalPane: React.FC<TerminalPaneProps> = ({
 
         {panelTab === 'output' && (
           <div className="h-full overflow-y-auto font-mono text-[11px] text-neutral-400 space-y-1 p-1">
-            <span className="text-[9px] font-mono text-neutral-600 block">[system] Streaming Live Samanvay Workspace event telemetry:</span>
+            <span className="text-[9px] font-mono text-neutral-600 block">[system] Streaming Live Convene Workspace event telemetry:</span>
             <p className="text-indigo-400">[info] Port 3000 mapped successfully to sandbox proxy container.</p>
             <p className="text-neutral-500">[info] Connecting to secure room workspace broadcast service...</p>
             <p className="text-emerald-400">[info] Live sync established. 0 latency. Host: 0.0.0.0</p>

@@ -102,7 +102,7 @@ export const EditorPane = forwardRef<EditorPaneRef, EditorPaneProps>(({
                 type="text"
                 value={aiPrompt}
                 onChange={(e) => setAiPrompt(e.target.value)}
-                placeholder="Ask Samanvay Agent to refactor, write helper functions or debug..."
+                placeholder="Ask Convene Agent to refactor, write helper functions or debug..."
                 disabled={isAgentResponding}
                 className="w-full pl-9 pr-3 py-2 bg-[#08090d] border border-sys-border/60 rounded-lg text-xs text-neutral-100 placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-mono"
               />

@@ -238,7 +238,7 @@ export const AuthContainer: React.FC<AuthContainerProps> = ({ onSuccess }) => {
           </div>
           <div>
             <span className="text-sm font-bold tracking-widest text-neutral-100 font-display uppercase">
-              SAMANVAY
+              CONVENE
             </span>
             <span className="block text-[10px] text-neutral-500 font-mono tracking-widest uppercase">
               COORDINATION GATEWAY
@@ -258,7 +258,7 @@ export const AuthContainer: React.FC<AuthContainerProps> = ({ onSuccess }) => {
             </h1>
             <p className="text-sm text-neutral-400">
               {screen === 'login' && 'Sign in to monitor and coordinate multi-agent AI processes.'}
-              {screen === 'signup' && 'Get started with SAMANVAY in under two minutes.'}
+              {screen === 'signup' && 'Get started with CONVENE in under two minutes.'}
               {screen === 'forgot' && "Enter your email. We'll send a plain-text link to securely restore access."}
             </p>
           </div>
@@ -340,7 +340,7 @@ export const AuthContainer: React.FC<AuthContainerProps> = ({ onSuccess }) => {
               </button>
 
               <p className="text-center text-xs text-neutral-400 mt-2">
-                New to Samanvay?{' '}
+                New to Convene?{' '}
                 <button
                   type="button"
                   onClick={() => handleSwitchScreen('signup')}
@@ -503,7 +503,7 @@ export const AuthContainer: React.FC<AuthContainerProps> = ({ onSuccess }) => {
                   className="mt-0.5 rounded bg-neutral-900 border-neutral-800 text-[#5f5af6] focus:ring-[#5f5af6] cursor-pointer"
                 />
                 <label htmlFor="signup-terms" className="text-xs text-neutral-400 leading-normal select-none">
-                  I consent to the Samanvay terms of service and acknowledge that agents follow sandbox safety guidelines.
+                  I consent to the Convene terms of service and acknowledge that agents follow sandbox safety guidelines.
                 </label>
               </div>
 
@@ -586,7 +586,7 @@ export const AuthContainer: React.FC<AuthContainerProps> = ({ onSuccess }) => {
 
         {/* Footer info */}
         <div className="pt-6 border-t border-neutral-900 flex justify-between items-center text-[11px] text-neutral-600 font-mono">
-          <span>SAMANVAY V1.0</span>
+          <span>CONVENE V1.0</span>
           <span>SANDBOXED PORT 3000</span>
         </div>
 
@@ -615,7 +615,7 @@ export const AuthContainer: React.FC<AuthContainerProps> = ({ onSuccess }) => {
               Orchestrate autonomous <span className="text-[#5f5af6]">AI workers</span> in harmony.
             </h2>
             <p className="text-sm text-neutral-400 leading-relaxed">
-              SAMANVAY manages specialized AI entities designed to dissect engineering plans, generate granular financial timeline ledgers, and audit structural system vulnerabilities.
+              CONVENE manages specialized AI entities designed to dissect engineering plans, generate granular financial timeline ledgers, and audit structural system vulnerabilities.
             </p>
           </div>
 
