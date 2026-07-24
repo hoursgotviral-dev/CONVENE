@@ -38,7 +38,7 @@ export interface AgentState {
   progress: number; // 0 to 100
 }
 
-export interface SamanvayState {
+export interface ConveneState {
   planner: AgentState;
   estimator: AgentState;
   riskFlagger: AgentState;

@@ -11,7 +11,7 @@ import { BudgetDecision } from './components/BudgetDecision';
 import { WorkspaceProvider, useWorkspace } from './context/WorkspaceContext';
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { LandingPage } from './components/LandingPage';
-import { SamanvayMark } from './components/SamanvayMark';
+import { ConveneMark } from './components/ConveneMark';
 
 function MainApp() {
   const {
@@ -72,11 +72,11 @@ function MainApp() {
       <header className="border-b border-sys-border bg-sys-panel/80 backdrop-blur-md px-6 py-4 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-3">
           <div className="p-1.5 bg-white/5 border border-white/10 rounded-2xl shadow-lg">
-            <SamanvayMark className="w-7 h-7" />
+            <ConveneMark className="w-7 h-7" />
           </div>
           <div>
             <h1 className="text-md font-bold tracking-tight text-neutral-100 font-display flex items-center gap-2">
-              SAMANVAY <span className="text-[10px] bg-human/15 text-human px-2 py-0.5 rounded-full border border-human/20 font-bold font-mono">WORKSPACE</span>
+              CONVENE <span className="text-[10px] bg-human/15 text-human px-2 py-0.5 rounded-full border border-human/20 font-bold font-mono">WORKSPACE</span>
             </h1>
             <p className="text-[10px] text-neutral-400 font-medium tracking-wide uppercase font-mono mt-0.5">
               Human-Agent Collaboration Hub
@@ -249,7 +249,7 @@ function MainApp() {
 
       {/* Decorative footer */}
       <footer className="border-t border-sys-border bg-sys-panel/40 px-6 py-4 flex flex-col sm:flex-row items-center justify-between text-[11px] text-neutral-500 gap-2 font-mono">
-        <span>Samanvay © 2026. A unified workspace for human-agent coordination.</span>
+        <span>Convene © 2026. A unified workspace for human-agent coordination.</span>
         <span className="text-neutral-600">SECURE SHELL PIPELINE</span>
       </footer>
 

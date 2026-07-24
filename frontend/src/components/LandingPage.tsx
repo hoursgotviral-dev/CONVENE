@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useWorkspace } from '../context/WorkspaceContext';
-import { SamanvayMark } from './SamanvayMark';
+import { ConveneMark } from './ConveneMark';
 import { Copy, Check, ArrowRight, Plus, LogIn, User, AlertCircle, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -83,7 +83,7 @@ export const LandingPage: React.FC = () => {
   };
 
   const isJoinDisabled = roomInput.trim().length !== 6 || loading;
-  const isAnonymous = authenticatedUserEmail?.endsWith('@dev.samanvay.local');
+  const isAnonymous = authenticatedUserEmail?.endsWith('@dev.convene.local');
 
   return (
     <div className="min-h-screen bg-[#0D0E12] text-neutral-100 flex flex-col justify-between p-4 md:p-8 relative overflow-hidden font-sans select-none">
@@ -96,7 +96,7 @@ export const LandingPage: React.FC = () => {
       <header className="w-full max-w-6xl mx-auto flex items-center justify-between py-4 z-10">
         <div className="flex items-center gap-3">
           <div className="p-1.5 bg-white/5 border border-white/10 rounded-2xl shadow-lg">
-            <SamanvayMark className="w-8 h-8" />
+            <ConveneMark className="w-8 h-8" />
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-bold font-display tracking-[0.2em] text-white uppercase leading-none">

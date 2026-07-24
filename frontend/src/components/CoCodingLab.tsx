@@ -61,7 +61,7 @@ export const CoCodingLab: React.FC = () => {
   const [initialContents] = useState<Record<string, string>>(() => ({ ...fileContents }));
 
   const [debugConsoleLines, setDebugConsoleLines] = useState<any[]>([
-    { text: 'Samanvay Co-Coding Debug Console v1.0.0. Type variables to inspect.', type: 'system' }
+    { text: 'Convene Co-Coding Debug Console v1.0.0. Type variables to inspect.', type: 'system' }
   ]);
   const [debugInput, setDebugInput] = useState('');
 
@@ -105,7 +105,7 @@ export const CoCodingLab: React.FC = () => {
         message: `Curly braces are unbalanced: ${openCurly} open vs ${closeCurly} closed.`,
         file: selectedFile,
         line: 'Ln 1',
-        source: 'samanvay-linter',
+        source: 'convene-linter',
       });
     }
 
@@ -118,7 +118,7 @@ export const CoCodingLab: React.FC = () => {
         message: `Square brackets are unbalanced: ${openSquare} open vs ${closeSquare} closed.`,
         file: selectedFile,
         line: 'Ln 1',
-        source: 'samanvay-linter',
+        source: 'convene-linter',
       });
     }
 
@@ -131,7 +131,7 @@ export const CoCodingLab: React.FC = () => {
         message: `Parentheses are unbalanced: ${openParen} open vs ${closeParen} closed.`,
         file: selectedFile,
         line: 'Ln 1',
-        source: 'samanvay-linter',
+        source: 'convene-linter',
       });
     }
 
@@ -198,7 +198,7 @@ export const CoCodingLab: React.FC = () => {
       setDebugInput('');
       return;
     } else if (lowerCmd === 'help') {
-      responseText = 'Samanvay Sandbox Variables to inspect:\n  - selectedFile : Current active file name\n  - fileContents : Map of all sandbox source code\n  - teamMembers  : Connected co-authors metadata\n  - clear        : Clear this debug console log';
+      responseText = 'Convene Sandbox Variables to inspect:\n  - selectedFile : Current active file name\n  - fileContents : Map of all sandbox source code\n  - teamMembers  : Connected co-authors metadata\n  - clear        : Clear this debug console log';
     } else if (lowerCmd === 'selectedfile') {
       responseText = `"${selectedFile}"`;
     } else if (lowerCmd === 'filecontents') {
@@ -425,13 +425,13 @@ export const CoCodingLab: React.FC = () => {
                     className="w-full flex items-center gap-1.5 px-3 py-2 text-left hover:bg-neutral-800/30 font-semibold transition-all cursor-pointer"
                   >
                     {fileTreeExpanded ? <ChevronDown className="w-3.5 h-3.5 text-neutral-500" /> : <ChevronRight className="w-3.5 h-3.5 text-neutral-500" />}
-                    <span className="text-[10px] font-mono tracking-wide text-neutral-400 uppercase">Samanvay Workspace</span>
+                    <span className="text-[10px] font-mono tracking-wide text-neutral-400 uppercase">Convene Workspace</span>
                   </button>
                   {fileTreeExpanded && (
                     <div className="px-4 pb-3 pt-1 font-mono text-[11px] space-y-1">
                       <div className="flex items-center gap-1.5 text-neutral-300 py-1">
                         <FolderOpen className="w-4 h-4 text-indigo-400" />
-                        <span className="font-semibold">samanvay-workspace</span>
+                        <span className="font-semibold">convene-workspace</span>
                       </div>
 
                       <div className="pl-3.5 space-y-1">
@@ -566,7 +566,7 @@ export const CoCodingLab: React.FC = () => {
                 <div className="bg-[#0c0d12] rounded-xl p-3 border border-sys-border/60 space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-[11px] font-mono text-neutral-300">Repository</span>
-                    <span className="text-[10px] font-mono bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded-md border border-indigo-500/20">samanvay-git*</span>
+                    <span className="text-[10px] font-mono bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded-md border border-indigo-500/20">convene-git*</span>
                   </div>
                   <div className="text-[10px] font-mono text-neutral-500">
                     Your sandbox is in sync with collaborative Git.
@@ -627,7 +627,7 @@ export const CoCodingLab: React.FC = () => {
                     <span>Active Launch config:</span>
                   </div>
                   <pre className="text-[10px] font-mono text-neutral-400 p-2 bg-neutral-900 rounded border border-neutral-800">
-                    {`{\n  "type": "node",\n  "request": "launch",\n  "name": "Samanvay Sandbox"\n}`}
+                    {`{\n  "type": "node",\n  "request": "launch",\n  "name": "Convene Sandbox"\n}`}
                   </pre>
                 </div>
 
@@ -751,7 +751,7 @@ export const CoCodingLab: React.FC = () => {
           </div>
 
           <div className="h-6.5 bg-[#12131b] border-b border-sys-border flex items-center px-4 font-mono text-[10px] text-neutral-500 shrink-0 select-none">
-            <span className="hover:text-neutral-300 cursor-pointer">samanvay-workspace</span>
+            <span className="hover:text-neutral-300 cursor-pointer">convene-workspace</span>
             <ChevronRight className="w-3 h-3 mx-1 text-neutral-600" />
             <span className="hover:text-neutral-300 cursor-pointer">src</span>
             <ChevronRight className="w-3 h-3 mx-1 text-neutral-600" />

@@ -317,8 +317,8 @@ import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.VITE_FIREBASE_API_KEY,
-  authDomain: "samanvay-sandbox.firebaseapp.com",
-  projectId: "samanvay-sandbox",
+  authDomain: "convene-sandbox.firebaseapp.com",
+  projectId: "convene-sandbox",
 };
 
 export const app = initializeApp(firebaseConfig);
@@ -452,7 +452,7 @@ export const db = getFirestore(app);`,
 
   // Terminal Lines
   const [terminalLines, setTerminalLines] = useState<TerminalLine[]>([
-    { text: 'SAMANVAY Secure Multi-Agent Collaboration Shell v1.0.0', type: 'system' },
+    { text: 'CONVENE Secure Multi-Agent Collaboration Shell v1.0.0', type: 'system' },
     { text: 'Connected to sandboxed dev environment. Port 3000 bound.', type: 'system' },
     { text: 'Type "help" to see available terminal commands or start instructions with "vibe <prompt>"', type: 'system' },
   ]);

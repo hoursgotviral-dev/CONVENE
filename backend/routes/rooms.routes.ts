@@ -39,7 +39,7 @@ router.post("/", async (req, res) => {
       : null;
 
     if (!user) {
-      const fallbackEmail = `${userDisplayName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'dev'}@dev.samanvay.local`;
+      const fallbackEmail = `${userDisplayName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'dev'}@dev.convene.local`;
       user = await prisma.user.upsert({
         where: { email: fallbackEmail },
         update: { displayName: userDisplayName },

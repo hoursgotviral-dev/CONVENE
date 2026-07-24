@@ -135,7 +135,7 @@ router.post("/agent", requireRoomMembership, async (req: any, res: any) => {
         }
       });
 
-      const sysInstruction = `You are the SAMANVAY Co-Coding Agent. You analyze the selected code block in the file "${fileName}" and fulfill the user's instructions.
+      const sysInstruction = `You are the CONVENE Co-Coding Agent. You analyze the selected code block in the file "${fileName}" and fulfill the user's instructions.
 You must respond with valid JSON containing the following properties:
 - explanation (a brief 1-2 sentence explanation of your suggested changes)
 - targetLines (the exact substring from the user's code to be replaced, or empty string to append to the end. THIS MUST MATCH A PART OF THE TARGET CODE EXACTLY FOR REPLACEMENT TO SUCCEED)
@@ -188,7 +188,7 @@ Always be extremely helpful, professional, and precise. Avoid any unnecessary te
           messages: [
             {
               role: "system",
-              content: `You are SAMANVAY Co-Coding Agent. You analyze the selected code block in the file "${fileName}" and fulfill the user's instructions.
+              content: `You are CONVENE Co-Coding Agent. You analyze the selected code block in the file "${fileName}" and fulfill the user's instructions.
 You must respond with valid JSON containing:
 {
   "explanation": "brief description of suggested change",
@@ -230,7 +230,7 @@ You must respond with valid JSON containing:
           messages: [
             {
               role: "user",
-              content: `You are SAMANVAY Co-Coding Agent. Analyze this code in "${fileName}":
+              content: `You are CONVENE Co-Coding Agent. Analyze this code in "${fileName}":
 \`\`\`
 ${code}
 \`\`\`
@@ -304,7 +304,7 @@ Respond ONLY with valid JSON.`
       } else {
         explanation = `Simulated suggestion response for instruction: "${prompt}". Connected a custom API key to enable live model queries.`;
         targetLines = code.split("\n")[0] || "// TODO: Integrate multi-agent auth gateway";
-        suggestedCode = `${targetLines}\n// Added by SAMANVAY multi-agent session helper\nconsole.log("Samanvay active worker session loaded.");`;
+        suggestedCode = `${targetLines}\n// Added by CONVENE multi-agent session helper\nconsole.log("Convene active worker session loaded.");`;
       }
     }
 
@@ -331,7 +331,7 @@ async function getPlannerFromGemini(task: string, aiClient: GoogleGenAI): Promis
   try {
     const response = await aiClient.models.generateContent({
       model: "gemini-3.5-flash",
-      contents: `You are the Planner Agent for SAMANVAY, a multi-agent AI coordination dashboard.
+      contents: `You are the Planner Agent for CONVENE, a multi-agent AI coordination dashboard.
 Given the project request: "${task}", deconstruct it into a structured list of 4 to 6 logical subtasks.
 Each subtask must contain:
 - id (a short string, e.g. "task-1")
@@ -378,7 +378,7 @@ async function getEstimatorFromGemini(task: string, plannerOutput: any[], aiClie
   try {
     const response = await aiClient.models.generateContent({
       model: "gemini-3.5-flash",
-      contents: `You are the Estimator Agent for SAMANVAY, a multi-agent AI system.
+      contents: `You are the Estimator Agent for CONVENE, a multi-agent AI system.
 Given the task description: "${task}" and the subtasks drafted by the Planner:
 ${JSON.stringify(plannerOutput, null, 2)}
 
@@ -426,7 +426,7 @@ async function getRiskFlaggerFromGemini(task: string, plannerOutput: any[], esti
   try {
     const response = await aiClient.models.generateContent({
       model: "gemini-3.5-flash",
-      contents: `You are the Risk-Flagger Agent for SAMANVAY, a multi-agent AI system.
+      contents: `You are the Risk-Flagger Agent for CONVENE, a multi-agent AI system.
 Given the project request: "${task}", the subtasks:
 ${JSON.stringify(plannerOutput, null, 2)}
 And the labor estimates:

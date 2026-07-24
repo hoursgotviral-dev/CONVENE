@@ -7,7 +7,6 @@ import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import { createServer as createViteServer } from "vite";
 import { prisma } from "./src/lib/db";
 import {
   hashPassword,
@@ -157,21 +156,9 @@ wss.on("connection", (ws, req) => {
   });
 });
 
-// Serve frontend assets
+// Start API Server
 async function startServer() {
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
-  }
+  // Backend is now an independent API, no Vite SSR needed.
 
   server.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on port ${PORT}`);

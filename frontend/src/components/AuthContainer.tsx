@@ -356,7 +356,7 @@ export const AuthContainer: React.FC<AuthContainerProps> = ({ onSuccess }) => {
               <div className="mt-6 pt-4 border-t border-neutral-900 text-center">
                 <button
                   type="button"
-                  onClick={() => onSuccess(`guest_${Math.random().toString(36).substring(2, 8)}@dev.samanvay.local`)}
+                  onClick={() => onSuccess(`guest_${Math.random().toString(36).substring(2, 8)}@dev.convene.local`)}
                   className="w-full py-2.5 px-4 bg-transparent hover:bg-white/5 border border-neutral-800 text-neutral-400 hover:text-neutral-200 font-semibold text-xs rounded-lg transition-all duration-200 cursor-pointer"
                 >
                   Continue Anonymously (Session Only)
@@ -533,7 +533,7 @@ export const AuthContainer: React.FC<AuthContainerProps> = ({ onSuccess }) => {
               <div className="mt-6 pt-4 border-t border-neutral-900 text-center">
                 <button
                   type="button"
-                  onClick={() => onSuccess(`guest_${Math.random().toString(36).substring(2, 8)}@dev.samanvay.local`)}
+                  onClick={() => onSuccess(`guest_${Math.random().toString(36).substring(2, 8)}@dev.convene.local`)}
                   className="w-full py-2.5 px-4 bg-transparent hover:bg-white/5 border border-neutral-800 text-neutral-400 hover:text-neutral-200 font-semibold text-xs rounded-lg transition-all duration-200 cursor-pointer"
                 >
                   Continue Anonymously (Session Only)
