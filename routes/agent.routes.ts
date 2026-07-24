@@ -32,6 +32,7 @@ router.post("/files/save", requireRoomMembership, (req: any, res: any) => {
   }
 
   fileEdits[fileName] = { email, content, timestamp: Date.now() };
+  broadcastToRoom(roomCode, { type: 'FILE_EDIT', fileName, content, email });
   res.json({ success: true });
 });
 
@@ -327,9 +328,10 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 async function getPlannerFromGemini(task: string, aiClient: GoogleGenAI): Promise<any[]> {
   if (!aiClient) throw new Error("Gemini client is uninitialized.");
 
-  const response = await aiClient.models.generateContent({
-    model: "gemini-3.5-flash",
-    contents: `You are the Planner Agent for SAMANVAY, a multi-agent AI coordination dashboard.
+  try {
+    const response = await aiClient.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: `You are the Planner Agent for SAMANVAY, a multi-agent AI coordination dashboard.
 Given the project request: "${task}", deconstruct it into a structured list of 4 to 6 logical subtasks.
 Each subtask must contain:
 - id (a short string, e.g. "task-1")
@@ -338,40 +340,45 @@ Each subtask must contain:
 - category (MUST be exactly one of: "Frontend UI", "Backend API", "Database Systems", "QA Testing", "DevOps & Deployment")
 
 Respond ONLY with valid JSON.`,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          subtasks: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                id: { type: Type.STRING },
-                title: { type: Type.STRING },
-                description: { type: Type.STRING },
-                category: { type: Type.STRING },
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            subtasks: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  id: { type: Type.STRING },
+                  title: { type: Type.STRING },
+                  description: { type: Type.STRING },
+                  category: { type: Type.STRING },
+                },
+                required: ["id", "title", "description", "category"],
               },
-              required: ["id", "title", "description", "category"],
             },
           },
+          required: ["subtasks"],
         },
-        required: ["subtasks"],
       },
-    },
-  });
+    });
 
-  const parsed = JSON.parse(response.text || "{}");
-  return parsed.subtasks || [];
+    const parsed = JSON.parse(response.text || "{}");
+    return parsed.subtasks || [];
+  } catch (err) {
+    console.error("Gemini API Error in getPlannerFromGemini:", err);
+    throw new Error("Gemini API key invalid or missing — check GEMINI_API_KEY env var or connect a personal key in room settings");
+  }
 }
 
 async function getEstimatorFromGemini(task: string, plannerOutput: any[], aiClient: GoogleGenAI): Promise<any> {
   if (!aiClient) throw new Error("Gemini client is uninitialized.");
 
-  const response = await aiClient.models.generateContent({
-    model: "gemini-3.5-flash",
-    contents: `You are the Estimator Agent for SAMANVAY, a multi-agent AI system.
+  try {
+    const response = await aiClient.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: `You are the Estimator Agent for SAMANVAY, a multi-agent AI system.
 Given the task description: "${task}" and the subtasks drafted by the Planner:
 ${JSON.stringify(plannerOutput, null, 2)}
 
@@ -381,40 +388,45 @@ Ensure totalHours is equal to the sum of hours in the breakdown.
 Ensure totalCost is equal to totalHours multiplied by 100.
 
 Respond ONLY with valid JSON.`,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          totalHours: { type: Type.INTEGER },
-          totalCost: { type: Type.INTEGER },
-          breakdown: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                category: { type: Type.STRING },
-                hours: { type: Type.INTEGER },
-                cost: { type: Type.INTEGER },
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            totalHours: { type: Type.INTEGER },
+            totalCost: { type: Type.INTEGER },
+            breakdown: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  category: { type: Type.STRING },
+                  hours: { type: Type.INTEGER },
+                  cost: { type: Type.INTEGER },
+                },
+                required: ["category", "hours", "cost"],
               },
-              required: ["category", "hours", "cost"],
             },
           },
+          required: ["totalHours", "totalCost", "breakdown"],
         },
-        required: ["totalHours", "totalCost", "breakdown"],
       },
-    },
-  });
+    });
 
-  return JSON.parse(response.text || "{}");
+    return JSON.parse(response.text || "{}");
+  } catch (err) {
+    console.error("Gemini API Error in getEstimatorFromGemini:", err);
+    throw new Error("Gemini API key invalid or missing — check GEMINI_API_KEY env var or connect a personal key in room settings");
+  }
 }
 
 async function getRiskFlaggerFromGemini(task: string, plannerOutput: any[], estimatorOutput: any, aiClient: GoogleGenAI): Promise<any> {
   if (!aiClient) throw new Error("Gemini client is uninitialized.");
 
-  const response = await aiClient.models.generateContent({
-    model: "gemini-3.5-flash",
-    contents: `You are the Risk-Flagger Agent for SAMANVAY, a multi-agent AI system.
+  try {
+    const response = await aiClient.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: `You are the Risk-Flagger Agent for SAMANVAY, a multi-agent AI system.
 Given the project request: "${task}", the subtasks:
 ${JSON.stringify(plannerOutput, null, 2)}
 And the labor estimates:
@@ -428,31 +440,35 @@ For each risk, provide:
 - mitigation (a clear, actionable mitigation directive)
 
 Respond ONLY with valid JSON.`,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          risks: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                id: { type: Type.STRING },
-                risk: { type: Type.STRING },
-                severity: { type: Type.STRING },
-                mitigation: { type: Type.STRING },
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            risks: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  id: { type: Type.STRING },
+                  risk: { type: Type.STRING },
+                  severity: { type: Type.STRING },
+                  mitigation: { type: Type.STRING },
+                },
+                required: ["id", "risk", "severity", "mitigation"],
               },
-              required: ["id", "risk", "severity", "mitigation"],
             },
           },
+          required: ["risks"],
         },
-        required: ["risks"],
       },
-    },
-  });
+    });
 
-  return JSON.parse(response.text || "{}");
+    return JSON.parse(response.text || "{}");
+  } catch (err) {
+    console.error("Gemini API Error in getRiskFlaggerFromGemini:", err);
+    throw new Error("Gemini API key invalid or missing — check GEMINI_API_KEY env var or connect a personal key in room settings");
+  }
 }
 
 // Smart Simulated Coordination Fallbacks

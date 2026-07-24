@@ -28,6 +28,11 @@ import { TeamMember } from "./src/types";
 
 dotenv.config();
 
+if (!process.env.GEMINI_API_KEY) {
+  console.warn("\n[WARNING] GEMINI_API_KEY environment variable is missing or empty.");
+  console.warn("The system agent fallback will fail unless users connect a personal API key in room settings.\n");
+}
+
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });

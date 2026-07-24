@@ -144,13 +144,13 @@ export const TaskTracker: React.FC<TaskTrackerProps> = ({ teamMembers }) => {
       </div>
 
       {/* Grid of Columns */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 overflow-x-auto pb-4 scrollbar-none">
+      <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-none">
         {columns.map(col => {
           const colTasks = tasks.filter(t => t.column === col.id);
           return (
             <div 
               key={col.id} 
-              className={`p-3 border rounded-2xl flex flex-col gap-3 min-h-[500px] min-w-[240px] ${col.color}`}
+              className={`p-3 border rounded-2xl flex flex-col gap-3 min-h-[500px] min-w-[260px] w-[260px] shrink-0 ${col.color}`}
             >
               <div className="flex justify-between items-center px-1">
                 <span className="text-xs font-bold text-neutral-300 font-display">

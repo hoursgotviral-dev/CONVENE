@@ -82,7 +82,7 @@ export const EditorPane = forwardRef<EditorPaneRef, EditorPaneProps>(({
       />
 
       <div className="absolute top-4 right-4 pointer-events-none z-10 flex flex-col items-end gap-1 font-mono text-[9px] select-none">
-        {teamMembers.filter(m => m.status !== 'offline' && m.id !== 'm-1').map(m => (
+        {teamMembers.filter(m => m.status !== 'offline' && m.id !== 'm-1' && m.cursorPosition?.includes(selectedFile)).map(m => (
           <div key={m.id} className="flex items-center gap-1.5 bg-[#0e0f16]/95 border border-sys-border text-indigo-400 px-2.5 py-1 rounded-full backdrop-blur-sm shadow-lg animate-fadeIn font-bold">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             <span>{m.name.split(' ')[0]} : editing</span>

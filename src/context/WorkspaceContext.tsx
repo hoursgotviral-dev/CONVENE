@@ -59,6 +59,7 @@ interface WorkspaceContextType {
   setDisplayName: (name: string | null) => void;
   createRoom: (displayName: string) => Promise<{ success: boolean; code?: string; error?: string }>;
   joinRoom: (code: string, displayName: string) => Promise<{ success: boolean; error?: string }>;
+  connectionError: string | null;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
@@ -76,6 +77,15 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [selectedFile, setSelectedFile] = useState('server.ts');
   const [currentProposal, setCurrentProposal] = useState<Proposal | null>(null);
   const [isAgentResponding, setIsAgentResponding] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const selectedFileRef = useRef(selectedFile);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+
+  useEffect(() => {
+    selectedFileRef.current = selectedFile;
+  }, [selectedFile]);
+
   const [authenticatedUserEmail, setAuthenticatedUserEmailState] = useState<string | null>(() => {
     return sessionStorage.getItem('samanvay_auth_email') || null;
   });
@@ -522,92 +532,121 @@ export const db = getFirestore(app);`,
       return;
     }
 
-    setConnecting(true);
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const fallbackWsUrl = `${protocol}//${window.location.host}`;
-    const wsUrl = WS_BASE || fallbackWsUrl;
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
+    const connectWs = () => {
+      setConnecting(true);
+      setConnectionError(null);
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const fallbackWsUrl = `${protocol}//${window.location.host}`;
+      const wsUrl = WS_BASE || fallbackWsUrl;
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
 
-    ws.onopen = () => {
-      setWsConnected(true);
-      setConnecting(false);
-      // Immediately register presence on connection
-      ws.send(JSON.stringify({
-        type: 'PRESENCE_SYNC',
-        email: authenticatedUserEmail,
-        displayName: displayName || sessionStorage.getItem('samanvay_display_name') || '',
-        roomCode: currentRoom,
-        status: 'active',
-        cursorPosition: `viewing ${selectedFile}`
-      }));
-    };
+      ws.onopen = () => {
+        setWsConnected(true);
+        setConnecting(false);
+        setConnectionError(null);
+        reconnectAttemptsRef.current = 0;
+        
+        // Immediately register presence on connection
+        ws.send(JSON.stringify({
+          type: 'PRESENCE_SYNC',
+          email: authenticatedUserEmail,
+          displayName: displayName || sessionStorage.getItem('samanvay_display_name') || '',
+          roomCode: currentRoom,
+          status: 'active',
+          cursorPosition: `viewing ${selectedFileRef.current}`
+        }));
+      };
 
-    ws.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data);
-        switch (message.type) {
-          case 'PRESENCE_UPDATE':
-            mapPresenceMembers(message.members || []);
-            break;
-          case 'TASK_MUTATION':
-            setTasks(message.tasks || []);
-            break;
-          case 'CONFLICT_LOG':
-            if (message.conflict.user !== authenticatedUserEmail) {
-              setConflictNotification(`This file was just saved by another user (${message.conflict.user}) — please reload or review edits to prevent overwriting.`);
-            }
-            break;
-          case 'STATUS':
-            if (message.agent === 'planner') {
-              setPlanner(prev => ({ ...prev, status: message.status, progress: message.progress ?? prev.progress }));
-            } else if (message.agent === 'estimator') {
-              setEstimator(prev => ({ ...prev, status: message.status, progress: message.progress ?? prev.progress }));
-            } else if (message.agent === 'riskFlagger') {
-              setRiskFlagger(prev => ({ ...prev, status: message.status, progress: message.progress ?? prev.progress }));
-            }
-            break;
-          case 'LOG':
-            if (message.agent === 'planner') {
-              setPlanner(prev => ({ ...prev, logs: [...prev.logs, message.message] }));
-            } else if (message.agent === 'estimator') {
-              setEstimator(prev => ({ ...prev, logs: [...prev.logs, message.message] }));
-            } else if (message.agent === 'riskFlagger') {
-              setRiskFlagger(prev => ({ ...prev, logs: [...prev.logs, message.message] }));
-            }
-            break;
-          case 'OUTPUT_PLANNER':
-            setPlannerOutput(message.data);
-            break;
-          case 'OUTPUT_ESTIMATOR':
-            setEstimatorOutput(message.data);
-            break;
-          case 'OUTPUT_RISK_FLAGGER':
-            setRiskFlaggerOutput(message.data);
-            break;
-          case 'ERROR':
-            setError(message.error);
-            setIsRunActive(false);
-            break;
+      ws.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          switch (message.type) {
+            case 'PRESENCE_UPDATE':
+              mapPresenceMembers(message.members || []);
+              break;
+            case 'TASK_MUTATION':
+              setTasks(message.tasks || []);
+              break;
+            case 'CONFLICT_LOG':
+              if (message.conflict.user !== authenticatedUserEmail) {
+                setConflictNotification(`This file was just saved by another user (${message.conflict.user}) — please reload or review edits to prevent overwriting.`);
+              }
+              break;
+            case 'FILE_EDIT':
+              if (message.fileName === selectedFileRef.current && message.email !== authenticatedUserEmail) {
+                setFileContents(prev => ({
+                  ...prev,
+                  [message.fileName]: message.content
+                }));
+              }
+              break;
+            case 'STATUS':
+              if (message.agent === 'planner') {
+                setPlanner(prev => ({ ...prev, status: message.status, progress: message.progress ?? prev.progress }));
+              } else if (message.agent === 'estimator') {
+                setEstimator(prev => ({ ...prev, status: message.status, progress: message.progress ?? prev.progress }));
+              } else if (message.agent === 'riskFlagger') {
+                setRiskFlagger(prev => ({ ...prev, status: message.status, progress: message.progress ?? prev.progress }));
+              }
+              break;
+            case 'LOG':
+              if (message.agent === 'planner') {
+                setPlanner(prev => ({ ...prev, logs: [...prev.logs, message.message] }));
+              } else if (message.agent === 'estimator') {
+                setEstimator(prev => ({ ...prev, logs: [...prev.logs, message.message] }));
+              } else if (message.agent === 'riskFlagger') {
+                setRiskFlagger(prev => ({ ...prev, logs: [...prev.logs, message.message] }));
+              }
+              break;
+            case 'OUTPUT_PLANNER':
+              setPlannerOutput(message.data);
+              break;
+            case 'OUTPUT_ESTIMATOR':
+              setEstimatorOutput(message.data);
+              break;
+            case 'OUTPUT_RISK_FLAGGER':
+              setRiskFlaggerOutput(message.data);
+              break;
+            case 'ERROR':
+              setError(message.error);
+              setIsRunActive(false);
+              break;
+          }
+        } catch (err) {
+          console.error("WS error parsing message", err);
         }
-      } catch (err) {
-        console.error("WS error parsing message", err);
-      }
+      };
+
+      const handleDisconnect = () => {
+        setWsConnected(false);
+        setConnecting(false);
+        
+        const attempt = reconnectAttemptsRef.current;
+        const delay = Math.min(1000 * Math.pow(2, attempt), 30000);
+        setConnectionError(`WebSocket disconnected. Reconnecting in ${delay/1000}s...`);
+        
+        reconnectTimeoutRef.current = setTimeout(() => {
+          reconnectAttemptsRef.current += 1;
+          connectWs();
+        }, delay);
+      };
+
+      ws.onclose = handleDisconnect;
+      ws.onerror = handleDisconnect;
     };
 
-    ws.onclose = () => {
-      setWsConnected(false);
-      setConnecting(false);
-    };
-
-    ws.onerror = () => {
-      setConnecting(false);
-    };
+    connectWs();
 
     return () => {
-      ws.close();
+      if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+      if (wsRef.current) {
+        wsRef.current.onclose = null;
+        wsRef.current.onerror = null;
+        wsRef.current.close();
+      }
     };
-  }, [authenticatedUserEmail, selectedFile, roomCode, displayName]);
+  }, [authenticatedUserEmail, roomCode, displayName]);
 
   // Synchronize dynamic presence status periodically
   useEffect(() => {
@@ -844,6 +883,7 @@ export const db = getFirestore(app);`,
         setDisplayName,
         createRoom,
         joinRoom,
+        connectionError,
       }}
     >
       {children}

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BudgetItem } from '../types';
+import { useWorkspace } from '../context/WorkspaceContext';
 import { 
   Coins, 
   Sparkles, 
@@ -16,41 +17,27 @@ import {
 } from 'lucide-react';
 
 export const BudgetDecision: React.FC = () => {
-  const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([
-    {
-      id: 'b-1',
-      item: 'GPU Orchestrator Nodes',
-      allocated: 800,
-      agentRecommended: 1400,
-      agentReasoning: 'Based on your prompt pipeline length (averaging 3 nested models with deep reasoning), we predict 12 million monthly tokens. Raising the capacity limit by $600 prevents automated API throttling during concurrent workspace sessions.',
-      approvedByHuman: null,
-    },
-    {
-      id: 'b-2',
-      item: 'Durable Spanner Database Tiers',
-      allocated: 450,
-      agentRecommended: 450,
-      agentReasoning: 'Your active schema demands (10 standard tables, ~50 concurrent writes per second) align perfectly with your standard tier. No scale adjustments are recommended currently.',
-      approvedByHuman: true,
-    },
-    {
-      id: 'b-3',
-      item: 'Vulnerability Scanner Sandbox Nodes',
-      allocated: 600,
-      agentRecommended: 300,
-      agentReasoning: 'Our continuous risk-flagger pipeline finished 4 loops without finding high-risk network CVE leaks. You can downsize standby nodes by $300 while keeping full detection latency levels.',
-      approvedByHuman: null,
-    },
-    {
-      id: 'b-4',
-      item: 'WebSocket Gateway Load Balancers',
-      allocated: 300,
-      agentRecommended: 500,
-      agentReasoning: 'Active team presence logs show high multiplayer cursor flickering in peak US hours. Elevating pool limits prevents WebSocket frame drop risks.',
-      approvedByHuman: false,
-      overriddenValue: 400,
+  const { estimatorOutput } = useWorkspace();
+  const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([]);
+
+  useEffect(() => {
+    if (estimatorOutput && 'breakdown' in estimatorOutput && Array.isArray(estimatorOutput.breakdown)) {
+      const newItems: BudgetItem[] = estimatorOutput.breakdown.map((b, i) => {
+        const original = Math.round(b.cost * 0.8);
+        return {
+          id: `b-dyn-${i}`,
+          item: b.category,
+          allocated: original,
+          originalAllocated: original,
+          agentRecommended: b.cost,
+          agentReasoning: `Agent estimated ${b.hours} hours required for ${b.category} tasks based on your requirements.`,
+          approvedByHuman: null
+        };
+      });
+      setBudgetItems(newItems);
     }
-  ]);
+  }, [estimatorOutput]);
+
 
   const [overrideInputs, setOverrideInputs] = useState<Record<string, string>>({});
 
@@ -96,7 +83,7 @@ export const BudgetDecision: React.FC = () => {
       if (item.id === id) {
         return {
           ...item,
-          allocated: item.id === 'b-1' ? 800 : item.id === 'b-3' ? 600 : 300, // restore original
+          allocated: item.originalAllocated,
           approvedByHuman: null,
           overriddenValue: undefined,
         };

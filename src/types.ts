@@ -77,6 +77,7 @@ export interface BudgetItem {
   id: string;
   item: string;
   allocated: number;
+  originalAllocated: number;
   agentRecommended: number;
   agentReasoning: string;
   approvedByHuman: boolean | null; // null = pending decision, true = approved agent, false = customized/overridden
