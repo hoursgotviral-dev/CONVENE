@@ -39,8 +39,8 @@ export function verifySessionToken(token: string): { userId: string; email: stri
 export function setSessionCookie(res: Response, token: string) {
   res.cookie('samanvay_session', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: true,
+    sameSite: 'none',
     maxAge: TOKEN_MAX_AGE,
     path: '/',
   });
@@ -49,8 +49,8 @@ export function setSessionCookie(res: Response, token: string) {
 export function clearSessionCookie(res: Response) {
   res.cookie('samanvay_session', '', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: true,
+    sameSite: 'none',
     maxAge: 0,
     path: '/',
   });
@@ -90,8 +90,8 @@ export function issueRoomSessionCookie(res: Response, { roomId, roomCode, userId
   const token = jwt.sign({ roomId, roomCode, userId }, JWT_SECRET, { expiresIn: '7d' });
   res.cookie(`samanvay_room_${roomCode}`, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: true,
+    sameSite: 'none',
     maxAge: TOKEN_MAX_AGE,
     path: '/',
   });

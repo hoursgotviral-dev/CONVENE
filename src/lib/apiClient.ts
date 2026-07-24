@@ -1,4 +1,5 @@
 // Shared API client that always sends credentials and handles 403 errors
+import { API_BASE } from './config';
 
 type ApiErrorHandler = (message: string) => void;
 
@@ -9,7 +10,8 @@ export const setOn403Handler = (handler: ApiErrorHandler) => {
 };
 
 export const apiFetch = async (url: string, options?: RequestInit): Promise<Response> => {
-  const response = await fetch(url, {
+  const fullUrl = url.startsWith('/api') ? `${API_BASE}${url}` : url;
+  const response = await fetch(fullUrl, {
     ...options,
     credentials: 'include',
   });

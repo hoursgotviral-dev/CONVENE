@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { WS_BASE } from '../lib/config';
 import { TeamMember, AgentState, AgentStatus, Subtask, EstimatorOutput, RiskFlaggerOutput, KanbanTask } from '../types';
 import { apiFetch, setOn403Handler } from '../lib/apiClient';
 
@@ -523,7 +524,8 @@ export const db = getFirestore(app);`,
 
     setConnecting(true);
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}`;
+    const fallbackWsUrl = `${protocol}//${window.location.host}`;
+    const wsUrl = WS_BASE || fallbackWsUrl;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 

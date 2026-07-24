@@ -13,6 +13,7 @@ import {
   Layers,
   ArrowLeft
 } from 'lucide-react';
+import { API_BASE } from '../lib/config';
 
 interface AuthContainerProps {
   onSuccess: (userEmail: string) => void;
@@ -135,9 +136,10 @@ export const AuthContainer: React.FC<AuthContainerProps> = ({ onSuccess }) => {
     setErrorMessage(null);
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
 
@@ -184,9 +186,10 @@ export const AuthContainer: React.FC<AuthContainerProps> = ({ onSuccess }) => {
     setErrorMessage(null);
 
     try {
-      const res = await fetch('/api/auth/signup', {
+      const res = await fetch(`${API_BASE}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, password, displayName: name }),
       });
 
