@@ -4,8 +4,8 @@ A real-time, multi-agent collaborative workspace where teams build software alon
 
 Built as a personal full-stack project exploring seamless LLM API integration in multiplayer environments.
 
-🔗 **Live demo:**https://convene-blue.vercel.app/
-🔗 **Backend API:** https://convene-g4t6.onrender.com
+- 🔗 **Live demo:** [https://convene-blue.vercel.app/](https://convene-blue.vercel.app/)
+- 🔗 **Backend API:** [https://convene-g4t6.onrender.com](https://convene-g4t6.onrender.com)
 ## For reviewers — start here
 Fastest path, no install. Open the live dashboard:
 
