@@ -1,82 +1,140 @@
-# System Architecture: CONVENE
+# Architecture — CONVENE
 
-This document provides a detailed overview of the CONVENE system architecture, its components, and how they interact to provide a seamless human-agent collaborative workspace.
+## Table of Contents
+1. [What This Is](#1-what-this-is)
+2. [High-Level Design](#2-high-level-design)
+3. [System Components](#3-system-components)
+4. [Data Model — The Contract](#4-data-model--the-contract)
+5. [Tech Stack](#5-tech-stack)
+6. [Key Design Decisions & Rationale](#6-key-design-decisions--rationale)
+7. [Failure Modes and Handling](#7-failure-modes-and-handling)
 
-## 1. High-Level Architecture
+## 1. What This Is
+### Purpose
+CONVENE is a real-time, multiplayer collaborative workspace that integrates intelligent AI agents into the software development lifecycle. Rather than treating AI as a separate chatbot window, CONVENE embeds agents directly into the team's shared environment (code editor, kanban board, budgeting tools). 
 
-CONVENE utilizes a modern decoupled architecture consisting of a React frontend and an Express/Node.js backend, communicating via REST and WebSockets.
+### Objectives
+The primary objectives of CONVENE are to:
+- Synchronize state and presence across multiple users in real-time.
+- Resolve file edit conflicts gracefully without data loss.
+- Provide contextual AI agents (Planner, Estimator, Risk-Flagger) that can analyze the live workspace.
+- Ensure all API keys and user data are securely isolated per room.
 
-```mermaid
-graph TD
-    Client[Frontend Client (React/Vite)]
-    
-    subgraph Backend [Backend Server (Express/Node.js)]
-        REST_API[REST API endpoints]
-        WS_Server[WebSocket Server]
-        SSE_Server[Server-Sent Events]
-    end
-    
-    DB[(PostgreSQL + Prisma)]
-    LLM[Google Gemini API]
+### Scope
+The system functions as a collaborative IDE and project management hub. 
+It does not:
+- Execute code in a sandboxed environment.
+- Replace full version control (it tracks live edits, not commits).
+- Operate without a user-provided LLM API key or a default system key.
 
-    Client <-->|REST / HTTP| REST_API
-    Client <-->|ws://| WS_Server
-    Client <-->|text/event-stream| SSE_Server
-    
-    REST_API <--> DB
-    WS_Server <--> DB
-    
-    REST_API <-->|REST/gRPC| LLM
-    SSE_Server <-->|Streaming| LLM
+## 2. High-Level Design
+
+```text
+                        ┌─────────────────────────┐
+                        │      Client Browser      │
+                        │   (React / Vite App)     │
+                        └────────────┬─────────────┘
+                                     │
+                 ┌───────────────────┼───────────────────┐
+                 │ HTTP (REST)       │ WebSockets (ws://)│ SSE (text/event-stream)
+                 ▼                   ▼                   ▼
+   ┌──────────────────────────────────────────────────────────┐
+   │                       CONVENE Backend                    │
+   │                                                          │
+   │  ┌────────────────────┐      ┌──────────────────────┐    │
+   │  │   Auth & Rooms     │      │  WebSocket Server    │    │
+   │  │  - JWT sessions    │      │  - Presence sync     │    │
+   │  │  - Room validation │      │  - File edit tracking│    │
+   │  └──────────┬─────────┘      └──────────┬───────────┘    │
+   │             │                           │                │
+   │  ┌──────────▼─────────┐      ┌──────────▼───────────┐    │
+   │  │   Agent Routes     │      │   Conflict Engine    │    │
+   │  │  - SSE Streaming   │      │  - Time-window diffs │    │
+   │  │  - LLM Integration │      │  - Overwrite logging │    │
+   │  └──────────┬─────────┘      └──────────────────────┘    │
+   └─────────────┼────────────────────────────────────────────┘
+                 │
+                 ▼
+      ┌──────────────────────┐
+      │  Google Gemini API   │
+      │  (External Service)  │
+      └──────────────────────┘
 ```
 
-## 2. Frontend Architecture
+### System Workflow
+1. A user authenticates and joins a specific **Room** using a room code.
+2. The client establishes a **WebSocket connection** to sync presence and cursor positions with other room members.
+3. Users collaboratively edit files or modify Kanban tasks; changes are broadcast via WebSockets.
+4. If an edit conflict occurs (two users edit the same file rapidly), the **Conflict Engine** resolves it and alerts the room.
+5. A user triggers the **Agent Pipeline** (e.g., asking the Planner for subtasks).
+6. The backend retrieves the encrypted API key, decrypts it, and queries the **Gemini API**.
+7. The agent's reasoning is streamed back to the client in real-time via **Server-Sent Events (SSE)**.
 
-The frontend is built with React 19 and Vite.
+## 3. System Components
 
-* **Workspace Context (`WorkspaceContext.tsx`):** The central state management hub. It holds the state for the active room, authenticated user, connected WebSocket status, active tab (Coding, Kanban, etc.), and agent outputs.
-* **Co-Coding Lab (`CoCodingLab.tsx`):** Integrates `@monaco-editor/react` to provide a robust code editing experience. It handles file selection and sends real-time code changes to the backend.
-* **Component-Based UI:** The UI is modular, utilizing components like `InputPanel`, `AgentStatusPanel`, and `ResultsPanel` to keep the codebase maintainable. Styling is powered by Tailwind CSS.
+### 3.1 frontend/
+**Purpose:** Presents the collaborative workspace, editor, and agent outputs.
+**Responsibilities:**
+- Manages global state via `WorkspaceContext`.
+- Renders the Co-Coding Lab using Monaco Editor.
+- Displays live presence (who is online, who is typing).
+- Consumes SSE streams to render agent thoughts sequentially.
 
-## 3. Backend Architecture
+### 3.2 backend/server.ts
+**Purpose:** The entry point for the Node.js application, managing HTTP routes and the WebSocket server.
+**Responsibilities:**
+- Mounts REST routers (auth, rooms, keys, tasks, agents).
+- Maintains the in-memory `socketPresences` map.
+- Broadcasts messages strictly to clients within the same `roomCode`.
 
-The backend operates as a unified API server serving REST requests, Server-Sent Events (SSE), and WebSockets.
+### 3.3 backend/routes/agent.routes.ts
+**Purpose:** Orchestrates the multi-agent AI pipeline.
+**Responsibilities:**
+- Receives natural language prompts and current workspace context.
+- Formats structured system instructions for the Planner, Estimator, and Risk-Flagger.
+- Handles rate limiting to prevent API abuse.
+- Streams responses back to the client using SSE headers.
 
-### 3.1. REST API
-* **`/api/auth`**: Handles user authentication, session token generation (via JWT), and cookie management.
-* **`/api/rooms`**: Manages room creation, joining, and validation.
-* **`/api/tasks`**: CRUD operations for the Kanban board tasks.
-* **`/api/keys`**: Securely handles adding and retrieving user-provided API keys using encryption.
+### 3.4 backend/src/lib/crypto.ts
+**Purpose:** Secures sensitive credentials.
+**Responsibilities:**
+- Encrypts user-provided LLM API keys using `aes-256-gcm`.
+- Decrypts keys just-in-time when an agent needs to make an API call.
 
-### 3.2. Real-time Communication (WebSockets)
-* **Presence Sync:** The WebSocket server tracks connected clients in `socketPresences`. It broadcasts `PRESENCE_UPDATE` events to notify room members of who is currently online and active.
-* **File Edits & Conflicts:** Real-time file changes are broadcast via WebSockets. The server maintains an in-memory `fileEdits` object to track who edited what. If multiple users edit the same file rapidly, a `CONFLICT_LOG` event is triggered.
+## 4. Data Model — The Contract
 
-### 3.3. Database Schema (Prisma)
-The primary relational models include:
-* **`User`**: System users (email, displayName, passwordHash).
-* **`Room`**: Collaborative workspaces (code, createdBy).
-* **`RoomMember`**: Junction table mapping Users to Rooms.
-* **`Task`**: Kanban items tied to a specific room, supporting subtasks and agent reasoning via JSON.
-* **`ApiKey`**: Encrypted API keys provided by users for specific rooms.
+The PostgreSQL database (managed via Prisma) acts as the source of truth for persistent data.
 
-## 4. Multi-Agent Orchestration
+- **User:** `id`, `email`, `passwordHash`, `displayName`
+- **Room:** `id`, `code`, `createdBy`
+- **RoomMember:** Junction mapping Users to Rooms, with a `status`.
+- **Task:** Kanban items belonging to a Room, supporting JSON `subtasks` and `agentReasoning`.
+- **ApiKey:** Room-specific LLM keys, stored with an encrypted `key` and `provider`.
 
-CONVENE integrates closely with the Google Gemini API (via `@google/genai`) to power intelligent agents.
+## 5. Tech Stack
 
-### 4.1. Specialized Agents
-* **Planner**: Analyzes tasks and breaks them down into subtasks.
-* **Estimator**: Evaluates required effort, time, and resources.
-* **Risk-Flagger**: Identifies potential technical or project risks.
+| Layer | Choice | Why |
+|-------|--------|-----|
+| **Backend API** | Node.js + Express | Fast asynchronous I/O, native support for SSE and WebSockets. |
+| **Real-time** | `ws` (WebSockets) | Lightweight, low-latency bidirectional communication for presence and live edits. |
+| **Database** | PostgreSQL + Prisma | Strong relational integrity; Prisma offers excellent TypeScript safety. |
+| **Frontend** | React + Vite | Fast client-side rendering; Vite provides a rapid development loop. |
+| **Code Editor** | Monaco Editor | The same engine powering VS Code, providing syntax highlighting and cursor tracking capabilities. |
+| **LLM Provider** | Google GenAI API | Gemini models provide fast, structured JSON generation and reasoning capabilities. |
 
-### 4.2. Execution Flow
-1. **Triggering:** The client sends an orchestration request (`/api/orchestrate` or via WS `RUN_AGENTS`).
-2. **Context Assembly:** The backend fetches the user's API key (either room-specific or falling back to the system `GEMINI_API_KEY`).
-3. **LLM Query:** The backend formats the prompt with system instructions tailored to the specific agent role and queries Gemini.
-4. **Streaming Delivery:** For complex orchestrations, the backend streams the agent's reasoning back to the client using Server-Sent Events (SSE), providing a real-time typing effect in the UI.
+## 6. Key Design Decisions & Rationale
 
-## 5. Security & Authentication
+- **Server-Sent Events (SSE) over WebSockets for AI streaming.** While WebSockets are used for presence and file edits (which are bidirectional and continuous), SSE is used for streaming the AI's response. SSE is natively unidirectional, simpler to implement for text streams, and works perfectly with standard HTTP proxies.
+- **In-Memory Conflict Engine.** Tracking file edits and conflicts in memory (`fileEdits` object in `server.ts`) instead of the database prevents severe database thrashing. Real-time collaboration generates thousands of keystrokes; writing each to a database is unacceptably slow.
+- **Room-Based Isolation.** Every WebSocket broadcast and API request is scoped to a specific `roomCode`. This prevents data leakage across different collaborative sessions.
+- **AES-256-GCM for API Keys.** Storing raw API keys is a massive security risk. We encrypt them symmetrically before database insertion. GCM mode provides both confidentiality and authenticity.
+- **Specialized Agents instead of a monolithic prompt.** Breaking the AI into a Planner, Estimator, and Risk-Flagger allows each prompt to be highly focused. It reduces hallucinations and makes the UI cleaner (each agent gets its own panel).
 
-* **JWT Sessions:** Users receive HttpOnly cookies containing JSON Web Tokens after authenticating.
-* **Room Validation:** Middleware (`requireRoomMembership`) ensures that API requests correspond to a room the user is actively a part of.
-* **Encryption:** API keys are stored in the database using strong symmetric encryption (`crypto.ts` utilizing `aes-256-gcm`), ensuring that plain text keys are never exposed.
+## 7. Failure Modes and Handling
+
+| Failure | Handling |
+|---------|----------|
+| **LLM API times out / fails** | The backend catches the exception, sends an error event via SSE, and the frontend displays a graceful error boundary rather than crashing. |
+| **WebSocket disconnects** | The frontend detects the closure and attempts to reconnect. The backend removes the stale client from `socketPresences` and broadcasts an updated roster to the room. |
+| **File Edit Conflict** | If User B overwrites User A within 15 seconds, the backend allows it but logs a `CONFLICT_LOG` event, showing a non-intrusive banner on the frontend so users can manually reconcile. |
+| **Missing API Key** | If no key is set for the room, the backend immediately returns a `402 Payment Required` status, prompting the frontend to open the API Keys onboarding modal. |
