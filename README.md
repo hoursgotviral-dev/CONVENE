@@ -1,97 +1,128 @@
-# CONVENE Workspace
+# CONVENE
 
-**CONVENE** is a Real-time Human-Agent Collaboration Hub. It is a unified workspace where teams can coordinate alongside AI agents to tackle tasks like co-coding, project planning, and task tracking. 
+A real-time, multi-agent collaborative workspace where teams build software alongside AI.
 
-## 🚀 Features
+Built as a personal full-stack project exploring seamless LLM API integration in multiplayer environments.
 
-* **Multi-Presence Workspace:** Real-time synchronization of users in rooms using WebSockets.
-* **Co-Coding Lab:** Collaborative code editor with file edit tracking and conflict resolution.
-* **Multi-Agent Orchestration:** Interact with specialized AI agents (Planner, Estimator, Risk-Flagger) powered by the Google Gemini API.
-* **Kanban Task Tracker:** Track tasks and orchestrate workflows within your room.
-* **Budget & Decision Tools:** Utilities to track project budgets and decisions.
-* **Real-time Pipeline:** Direct streaming of AI agent outputs via Server-Sent Events (SSE).
+🔗 **Live demo:** [Placeholder for Vercel link]
+🔗 **Backend API:** [Placeholder for Render/backend link]
 
-## 🛠️ Technology Stack
+## For reviewers — start here
+Fastest path, no install. Open the live dashboard:
 
-**Frontend:**
-* React 19 + Vite
-* Tailwind CSS + Framer Motion for styling and animations
-* Monaco Editor (Code Editing) & Xterm.js (Terminal)
-* Lucide React for Icons
+- **Multi-Presence Workspace** — See real-time presence indicators, cursor tracking, and live synchronization across multiple clients using WebSockets.
+- **Co-Coding Lab** — A collaborative code editor with built-in conflict resolution and edit tracking.
+- **Multi-Agent Orchestration** — The heart of the platform. Trigger the "Realtime Workspace Pipeline" to engage specialized Gemini-powered agents (Planner, Estimator, Risk-Flagger) that stream reasoning back via Server-Sent Events (SSE).
+- **Kanban & Budgeting** — Integrated task tracking and project budgeting tools that the AI agents can contextualize.
 
-**Backend:**
-* Node.js + Express
-* WebSocket (`ws`) for real-time presence and collaboration
-* Prisma + PostgreSQL for database and persistence
-* Google GenAI SDK (`@google/genai`) for LLM agent integration
+## Run it yourself, ~5 minutes
 
-## 📦 Getting Started
-
-### Prerequisites
-* Node.js (v18+ recommended)
-* PostgreSQL database
-
-### Installation
-
-1. **Clone the repository** (if you haven't already).
-
-2. **Install Backend Dependencies:**
-   ```bash
-   cd backend
-   npm install
-   ```
-
-3. **Install Frontend Dependencies:**
-   ```bash
-   cd frontend
-   npm install
-   ```
-
-### Environment Configuration
-
-In the `backend` directory, create a `.env` file based on your environment:
-```env
-# Database connection string
-DATABASE_URL="postgresql://user:password@localhost:5432/convene?schema=public"
-
-# Google Gemini API Key (Can also be configured per-room via the UI)
-GEMINI_API_KEY="your_google_genai_api_key"
-
-# Frontend Origin for CORS
-FRONTEND_ORIGIN="http://localhost:5173"
-```
-
-### Database Setup
-
-Run Prisma migrations to set up your PostgreSQL database schema:
 ```bash
+git clone https://github.com/hoursgotviral-dev/CONVENE.git
+cd CONVENE
+
+# 1. Start the backend
 cd backend
-npx prisma migrate dev
+npm install
+# Set up .env with DATABASE_URL and GEMINI_API_KEY
+npx prisma db push
+npm run dev # http://localhost:3000
+
+# 2. Start the frontend
+cd ../frontend
+npm install
+npm run dev # http://localhost:5173
 ```
 
-### Running the Application
+## The problem
+When teams build software with AI today, the process is heavily fragmented.
+1. A developer copies code from their IDE into ChatGPT or Claude.
+2. The AI generates a response without broader project context.
+3. The developer pastes it back.
+4. Teammates have no visibility into what the AI suggested, why it was chosen, or how it affects the project plan.
 
-1. **Start the Backend Server:**
-   ```bash
-   cd backend
-   npm run dev
-   ```
-   *The backend server will start on port 3000.*
+**What it means:** Context is lost, collaboration is asynchronous, and AI operates in a silo away from the actual workspace.
 
-2. **Start the Frontend Development Server:**
-   ```bash
-   cd frontend
-   npm run dev
-   ```
-   *The frontend will start typically on port 5173.*
+## What we're building
+CONVENE bridges the gap between multiplayer collaboration and intelligent agent orchestration.
 
-3. Open your browser and navigate to `http://localhost:5173`. 
-4. Sign in with your email, create or join a room, and start collaborating!
+- It provides a shared **Room** where developers code together.
+- It introduces **Specialized Agents** (Planner, Estimator, Risk-Flagger) that analyze the live workspace in real-time.
+- If multiple developers edit the same file rapidly, the **Conflict Engine** logs and resolves overwrites.
+- The agents stream their reasoning back to the entire room instantly using **SSE (Server-Sent Events)**, ensuring everyone is on the same page.
 
-## 🔐 Security & API Keys
+## Architecture
 
-- **Room Isolation:** All collaborative activities are isolated within specific rooms. You must join a room with a valid code.
-- **Custom API Keys:** Users can securely add their own LLM API keys via the "API Keys" onboarding modal. These are stored encrypted in the database.
+**Design principle**
+Determinism for state, LLMs for reasoning. The real-time synchronization, cursor tracking, and file edit conflict resolution are handled purely via standard WebSockets and Node.js logic. The LLM (Google Gemini) is invoked strictly for orchestration and reasoning, keeping the collaborative foundation fast and auditable.
 
-## 📄 License
-Convene © 2026. All rights reserved.
+**Flow**
+```text
+Live Workspace (React) ──┐
+                         ├──> WebSockets (Presence, Edits)
+    Collaborator B ──────┘
+                         │
+               trigger Agent Pipeline
+                         ▼
+             ┌────── CONVENE Backend ──────┐
+             │ Orchestrator & Rate Limiter │
+             └───────────┬─────────────────┘
+                         │ 
+               REST/gRPC │ (Task, Context)
+                         ▼
+                  Google Gemini API
+          (Planner, Estimator, Risk-Flagger)
+                         │
+             SSE Streams │ (Real-time JSON/Markdown)
+                         ▼
+               Live Workspace (React)
+```
+
+## The custom agents
+
+| Name | Role |
+|------|------|
+| **Planner** | Analyzes the current task and breaks it down into actionable subtasks. |
+| **Estimator** | Evaluates the required effort, time, and resources for the proposed plan. |
+| **Risk-Flagger** | Identifies potential technical debt, security issues, or project risks in the workspace. |
+
+## Safety properties
+Enforced in code and covered by architecture design:
+
+- **Isolated Rooms:** All collaborative activities and agent contexts are strictly isolated within specific Room IDs. Users must authenticate and join a room.
+- **Encrypted Keys:** Users can provide their own LLM API keys. These are stored using symmetric AES-256-GCM encryption and decrypted only at the moment of API invocation.
+- **Conflict Logging:** If two users edit the same file within a 15-second window, the system detects the overwrite, records the original author, and broadcasts a conflict banner to the room.
+- **Rate Limiting:** Agent invocations are rate-limited per room to prevent API abuse and control costs.
+
+## Stack
+
+| Concern | Choice | Why |
+|---------|--------|-----|
+| **Backend** | Node.js + Express | Fast asynchronous handling, native WebSocket support, and easy SSE streaming. |
+| **Frontend** | React + Vite | Clean, rapid client-side rendering with Tailwind CSS for modern aesthetics. |
+| **Real-time** | WebSockets + SSE | WebSockets for low-latency bidirectional presence; SSE for unidirectional agent streaming. |
+| **Database** | PostgreSQL + Prisma | Relational integrity for Users, Rooms, Tasks, and encrypted API keys. |
+| **LLM** | Google Gemini API | Powerful reasoning engine with structured JSON output capabilities. |
+
+## Project structure
+```text
+backend/
+  routes/
+    agent.routes.ts        # Agent orchestration, SSE, & WebSockets
+    auth.routes.ts         # JWT Session management
+    rooms.routes.ts        # Workspace isolation logic
+  src/lib/
+    crypto.ts              # AES-256-GCM encryption for API keys
+  server.ts                # WS server, Presence mapping, Conflict tracking
+frontend/
+  src/
+    components/            # UI Panels (CoCodingLab, AgentStatusPanel)
+    context/               # WorkspaceContext for real-time state
+```
+
+## Documents
+
+| Document | Contents |
+|----------|----------|
+| `README.md` | This file. Setup, pitch, and high-level architecture. |
+| `ARCHITECTURE.md` | Full design, data model, component interaction, and security. |
